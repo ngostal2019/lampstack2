@@ -1,0 +1,13 @@
+---  
+- name: "Installing Packages And Starting Respective Services"
+  hosts: all
+  remote_user: root
+  tasks:
+  - include_tasks: lampstacksetup.yml
+  - include_tasks: mariadb.yml
+  
+  handlers:
+  - name: Notify to restart httpd
+    service:
+      name: httpd
+      state: restarted

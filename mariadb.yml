@@ -1,0 +1,17 @@
+---
+- name: "Copy script files"
+  copy:
+    src: /etc/ansible/lampstack2/files/{{ item }}
+    dest: /tmp/{{ item }}
+  with_items:
+    - mysql-confg.sql
+    - db-load-script.sql
+  
+- name: "Run scripts"
+  ansible.builtin.shell:
+    cmd: $(which mysql) < {{ item }}
+    chdir: /tmp/
+    executable: /usr/bin/bash
+  with_items:
+    - mysql-confg.sql
+    - db-load-script.sql

@@ -1,0 +1,56 @@
+---
+  - name: "Install packages"
+    ansible.builtin.yum:
+      name: '{{ item }}' 
+      state: latest
+      update_cache: yes
+    with_items:
+    - firewalld
+    - mariadb-server
+    - httpd
+    - php
+    - php-mysqlnd
+    - git
+  
+  - name: "Start and enable services"
+    ansible.builtin.service:
+      name: '{{ item }}'
+      state: started
+      enabled: yes
+    with_items:
+    - firewalld
+    - mariadb
+    - httpd
+
+  - name: Firewall configuration
+    ansible.posix.firewalld:
+      port: '{{ item }}'
+      permanent: yes
+      immediate: yes
+      state: enabled
+    with_items:
+    - '3306/tcp'
+    - '80/tcp'
+
+  - name: "Changing document root from index.html to index.php"
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      search_string: '    DirectoryIndex index.html'
+      line: '    DirectoryIndex index.php'
+    
+    notify: Notify to restart httpd
+ 
+  - name: "Download files from Git"
+    ansible.builtin.git:
+      repo: 'https://github.com/kodekloudhub/learning-app-ecommerce.git'
+      dest: /var/www/html/
+      clone: yes
+      force: yes
+
+  - name: "Changing IP of the database server"
+    ansible.builtin.replace:
+      path: /var/www/html/index.php
+      regexp: '\b172.20.1.101\b'
+      #replace: "{{ ansible_ssh_host }}"
+      replace: "localhost"
+  
